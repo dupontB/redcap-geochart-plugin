@@ -133,7 +133,23 @@ function injectPluginTabs($pid, $plugin_path, $plugin_name) {
     echo $msg;
 }
 
-function RegionMap($tab,$location) {
+
+    function getElementEnum($proj, $field) {
+        $enum = db_fetch_assoc(db_query("select element_enum as ee from redcap_metadata where project_id = $proj and field_name = '$field'"));
+                
+        $fld_enum = $enum['ee'];
+        $enum_array = array();
+     
+     
+        foreach (explode("\\n", $fld_enum)  as $key => $value) {
+            $new = explode(", ", $value);
+            $enum_array[trim($new['0'])] = trim($new['1']);
+        }
+        return $enum_array;
+    }
+	
+	
+function RegionMap($tab,$location,$provinces) {
     
 		print '<!-- jQuery (necessary for Bootstraps JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
@@ -156,10 +172,10 @@ function RegionMap($tab,$location) {
 		print $tab;
 		print ');
 
-        var options = {
+        var options = {';
+			if ($provinces=="YES"){print 'resolution:"provinces",';}
 			
-			
-			region: "';
+			print'region: "';
 			print $location;
 			print'"
 

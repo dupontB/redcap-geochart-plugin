@@ -44,8 +44,9 @@ border-bottom: solid 1px #888;
  $dbname='DB';
 $mytable ='gmap';
 
-//PLEASE UNCOMMENT THIS LINE THE FIRST TIME YOU USE THE PLUGIN==> create the local sqlite DB
-//CreateTable($dbname,$mytable);
+if (!file_exists($dbname)) {
+    CreateTable($dbname,$mytable);
+} 
 
 
 $id =$_GET['pid'];
@@ -131,8 +132,8 @@ print "</form>";
 
 //if the 2 fields exist
 if (isset($_POST['listofinstrument']) and isset($_POST['listoffields'])){
- 	//entete du tableau
-	$montableau = "[['Pays', 'nombre de formulaires'],";
+
+	$montableau = "[['Country', 'count'],";
 //select country value and count each
 
 	$sql = "SELECT value, COUNT( * )as compteur FROM redcap_data where project_id=".$_GET['pid']." and field_name ='".$_POST['listoffields']."' GROUP BY value";
@@ -148,19 +149,7 @@ $result = $conn->query($sql);
 	//close table
 	$montableau .="]";
 
-    function getElementEnum($proj, $field) {
-        $enum = db_fetch_assoc(db_query("select element_enum as ee from redcap_metadata where project_id = $proj and field_name = '$field'"));
-                
-        $fld_enum = $enum['ee'];
-        $enum_array = array();
-     
-     
-        foreach (explode("\\n", $fld_enum)  as $key => $value) {
-            $new = explode(", ", $value);
-            $enum_array[trim($new['0'])] = trim($new['1']);
-        }
-        return $enum_array;
-    }
+
 $toprint = getElementEnum($_GET['pid'],$_POST['listoffields']);
 
 //adjust syntax adding quote
@@ -179,10 +168,14 @@ if (isset($_POST['listofinstrument']) and isset($_POST['listoffields']) and isse
 // You can target a region, europe for exemple is 150, adding in url argument map=150
 //find your region code here : https://developers.google.com/chart/interactive/docs/gallery/geochart#continent-hierarchy-and-codes
 $myregion =$_GET['map'];
-if (empty($myregion))
-$myregion="world";
+$provinces=$_GET['provinces'];
 
-RegionMap($montableau,$myregion);
+//If you don't precise map in URL, put worldmap by default
+if (empty($myregion))$myregion="world";
+//If you don't precise to set region in URL,no set region precision
+if (!empty($provinces)){$provinces="YES";} ELSE {$provinces="NO" ;}
+
+RegionMap($montableau,$myregion,$provinces);
 
 }
 
